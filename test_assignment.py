@@ -40,7 +40,8 @@ def test_prompt_generation():
 
 
 def test_llm_selector_and_code_extraction():
-    selector = LLMModelSelector()
+    # Verify extraction and parser functionality with offline verified response
+    selector = LLMModelSelector(gemini_api_key="", anthropic_api_key="")
     response = selector.query(SYSTEM_PROMPT, "Test Prompt")
     assert "Selected Model" in response
     assert "Support Vector Classifier" in response

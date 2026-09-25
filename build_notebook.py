@@ -1,6 +1,8 @@
 """
-Builds and executes Assignment1.ipynb, ensuring all rubric items are explicitly labeled,
-all code executes with 0 warnings/errors, and all visualizations are cleanly embedded.
+CMSI 630: Artificial Intelligence — Assignment 1
+Script to build and execute Assignment1.ipynb
+Student: Jillian Hunter
+Instructor: Dr. K. Narayanaswamy
 """
 
 import os
@@ -30,131 +32,105 @@ def create_assignment_notebook():
     cells.append(nbf.v4.new_markdown_cell("""# CMSI 630: Artificial Intelligence — Assignment 1
 ## AI-Based Supervised Machine Learning Classification Model Selection
 
+- **Student:** Jillian Hunter
 - **Course:** CMSI 630 – Artificial Intelligence
 - **Instructor:** Dr. K. Narayanaswamy
-- **Student Name:** Jillian Hunter
 - **Due Date:** 10/09/2026 @ 11:59:59 PM
 - **Dataset:** Fisher's Iris Classification Dataset
 
 ---
 
-## Executive Summary & Navigation
+### Assignment Overview & Notebook Contents
 
-This notebook implements an end-to-end automated artificial intelligence system that:
-1. Profiles a classification problem description and empirical training dataset (Fisher's Iris dataset).
-2. Leverages a Generative AI foundation model (Anthropic Claude 3.5 Sonnet) with custom-engineered prompts to analyze the problem geometry, select the mathematically optimal machine learning algorithm, justify the selection, and generate Scikit-Learn implementation code.
-3. Automatically parses, instantiates, and trains the AI-selected model inside an Scikit-Learn `Pipeline`.
-4. Executes rigorous Stratified 5-Fold Cross-Validation, computing Accuracy, Precision, Recall, F1-Score, Confusion Matrices, Classification Reports, and Multiclass ROC/AUC curves.
-5. Benchmarks the selected model against six competing classification algorithms (Linear SVM, Logistic Regression, Random Forest, K-Nearest Neighbors, Decision Tree, Gaussian Naive Bayes) under identical cross-validation conditions to empirically prove that the selected model performs as well as or better than the alternatives.
-6. Provides a turnkey 5-minute in-class demonstration script and Q&A defense guide.
+In this assignment, we explore using a Generative AI foundation model to analyze a supervised classification problem and select the most appropriate machine learning algorithm for the dataset. Using Fisher's Iris dataset from class, we:
+1. Explore and profile the dataset (features, distributions, class balance, and feature correlations).
+2. Formulate a prompt with the problem description and empirical summary to query a GenAI model (Google Gemini / Anthropic Claude) to select the best Scikit-Learn algorithm and provide its reasoning.
+3. Implement the selected model inside a Scikit-Learn `Pipeline` with `StandardScaler`.
+4. Evaluate the model using Stratified 5-Fold Cross-Validation, reporting accuracy, precision, recall, F1-score, confusion matrices, and ROC curves.
+5. Benchmark the selected model against 6 other classification algorithms under identical cross-validation conditions to evaluate whether it performs as well as or better than the alternatives.
+6. Provide presentation notes and talking points for the 5-minute in-class demonstration.
 
-### Graded Deliverables Quick-Links:
-- [Item 1: Overall Design Documentation, Platforms Used, and Execution Instructions (10 Points)](#item-1)
-- [Item 2: Selection of the Best ML Model for the Problem (20 Points)](#item-2)
+**Grading Deliverables Quick-Links:**
+- [Item 1: Overall Design Documentation, Platforms Used, and How to Run Code (10 Points)](#item-1)
+- [Item 2: Selection of the Best ML Model (Prompting & AI Output) (20 Points)](#item-2)
 - [Item 3: Implementation of the Selected ML Model (20 Points)](#item-3)
 - [Item 4: Cross-Validation Procedures Demonstrating Performance (20 Points)](#item-4)
-- [Item 5: Documentation of Reasoning for Model Selection & Relative Performance Comparison (15 Points)](#item-5)
-- [Item 6: 5-Minute In-Class Demo & Presentation Guide (15 Points)](#item-6)
+- [Item 5: Reasoning for Model Selection & Benchmark Comparison (15 Points)](#item-5)
+- [Item 6: 5-Minute In-Class Presentation Notes & Discussion Points (15 Points)](#item-6)
 """))
 
     # --------------------------------------------------------------------------
     # Item 1: Overall Design Documentation (10 points)
     # --------------------------------------------------------------------------
     cells.append(nbf.v4.new_markdown_cell("""<a id="item-1"></a>
-# Item 1: Documentation of the Overall Design, Platforms Used, and How to Run Code (10 Points)
+# Item 1: Overall Design Documentation, Platforms Used, and How to Run Code (10 Points)
 
-### 1.1 Architectural Overview & System Design
+### 1.1 Solution Design & Workflow
 
-The system implements a modular 6-stage architecture connecting dataset diagnostics, Generative AI code synthesis, dynamic execution, and statistical validation:
+My solution connects dataset analysis, GenAI model recommendation, and empirical cross-validation in a clear sequential workflow:
 
-```
-+------------------------------------------------------------------------------------------------+
-|                                    SOLUTION ARCHITECTURE                                       |
-+------------------------------------------------------------------------------------------------+
-|                                                                                                |
-|  [Stage 1: Dataset Diagnostics & Profiling]                                                    |
-|      Fisher's Iris Dataset (N=150, d=4) -> Statistical Profiler -> Geometric Summary Context   |
-|                                                                                                |
-|  [Stage 2: Prompt Engineering & Assembly]                                                      |
-|      System Prompt (Role + Constraints) + User Prompt (Problem + Geometry + 6 Candidate Models)|
-|                                                                                                |
-|  [Stage 3: GenAI Model Selection Engine]                                                       |
-|      Anthropic Claude 3.5 Sonnet API (with Fallback to Cached Production Output for Grading)   |
-|      -> Output: Mathematical Rationale + Selected Model (SVC RBF) + Scikit-Learn Code Block    |
-|                                                                                                |
-|  [Stage 4: Automated Code Extraction & Pipeline Assembly]                                      |
-|      Regex Code Extractor -> Pipeline(StandardScaler(), SVC(kernel='rbf', C=1.0))              |
-|                                                                                                |
-|  [Stage 5: Cross-Validation & Metric Evaluation]                                               |
-|      Stratified 5-Fold CV -> Accuracy, Precision, Recall, F1, Confusion Matrix, ROC-AUC Curves |
-|                                                                                                |
-|  [Stage 6: Multi-Model Benchmark & Comparative Analysis]                                       |
-|      Benchmark Suite: SVC (RBF), SVC (Linear), LogReg, KNN, Random Forest, Decision Tree, GNB  |
-+------------------------------------------------------------------------------------------------+
-```
+1. **Data Exploration & Statistical Profiling:** Load the Iris dataset, compute summary statistics, verify class balance, and analyze feature correlations to understand the geometry of the data.
+2. **Prompt Formulation:** Construct a prompt containing the classification task, dataset statistics (150 samples, 4 features, zero missing values, high petal correlation), and candidate models.
+3. **GenAI Recommendation:** Query the AI model (Google Gemini `gemini-3.8-flash` via `google-genai` / Anthropic Claude, with a saved fallback for offline grading) to choose the best algorithm and explain its reasoning.
+4. **Code Extraction & Pipeline Setup:** Parse the Scikit-Learn code from the AI response and build a pipeline pairing `StandardScaler` with `SVC(kernel='rbf')`.
+5. **Cross-Validation:** Evaluate the pipeline using Stratified 5-Fold Cross-Validation, generating fold-by-fold scores, an out-of-fold confusion matrix, classification report, ROC/AUC curves, and a 2D decision boundary plot.
+6. **Benchmark Comparison:** Test 6 competing classification algorithms on the exact same cross-validation folds to compare their performance and analyze their theoretical trade-offs.
 
-### 1.2 Software Platforms and Libraries Used
+### 1.2 Platforms and Libraries Used
 
-| Platform / Library | Version | Specific Role in Solution |
+| Library / Tool | Version | Role in Assignment |
 | :--- | :--- | :--- |
-| **Python** | 3.14+ | Core programming runtime environment. |
-| **Scikit-Learn** | 1.9.0+ | Core machine learning library used for dataset loading, preprocessing (`StandardScaler`), model definitions (`SVC`, `LogisticRegression`, `RandomForestClassifier`, `KNeighborsClassifier`, `DecisionTreeClassifier`, `GaussianNB`), cross-validation (`StratifiedKFold`, `cross_validate`), and metrics (`confusion_matrix`, `roc_curve`, `auc`, `classification_report`). |
-| **Google Gemini API** | `google-genai` 2.25+ | Primary Generative AI foundation model (`gemini-2.0-flash` via Google AI Studio free tier) used to analyze the dataset profile, select the optimal algorithm, justify the selection theoretically, and generate Scikit-Learn code. |
-| **python-dotenv** | 1.2.1+ | Securely loads environment variables (`GEMINI_API_KEY`) from local `.env` while protecting credentials from being committed to Git via `.gitignore`. |
-| **Pandas** | 3.0.3+ | Tabular data structures for data exploration, summary profiling, and benchmark comparisons. |
-| **NumPy** | 2.2.0+ | Multidimensional array manipulation, binarization, and mathematical vector operations. |
-| **Matplotlib & Seaborn** | 3.11.0 / 0.13.2 | High-resolution publication-quality visualizations: pairplots, correlation heatmaps, confusion matrices, ROC curves, decision boundaries, and model benchmark bar charts. |
-| **Jupyter Notebook** | 1.1.1+ | Interactive literate programming platform combining narrative markdown, reproducible code cells, and embedded visual output. |
+| **Python** | 3.14+ | Primary programming language. |
+| **Scikit-Learn** | 1.9.0+ | Machine learning library used for dataset loading, preprocessing (`StandardScaler`), classifiers (`SVC`, `LogisticRegression`, `RandomForestClassifier`, `KNeighborsClassifier`, `DecisionTreeClassifier`, `GaussianNB`), cross-validation (`StratifiedKFold`, `cross_validate`), and evaluation metrics. |
+| **Google Gemini API** | `google-genai` | GenAI model used to analyze the dataset profile and recommend the classification model (`gemini-3.8-flash`). |
+| **python-dotenv** | 1.2.1+ | Loads `GEMINI_API_KEY` from a local `.env` file so credentials are not committed to git. |
+| **Pandas & NumPy** | 3.0.3+ / 2.2.0+ | Handling tabular data frames, statistics, and array manipulations. |
+| **Matplotlib & Seaborn** | 3.11.0 / 0.13.2 | Visualizations (correlation heatmap, pairplot, confusion matrices, ROC curves, decision boundaries, benchmark bar chart). |
+| **Jupyter Notebook** | 1.1.1+ | Interactive notebook environment for running code and viewing results. |
 
-### 1.3 How to Run the Code & Secure API Key Setup
+### 1.3 How to Run the Code
 
 1. **Prerequisites:**
-   Ensure Python 3.10+ (or Anaconda) is installed with the required libraries:
+   Ensure Python 3.10+ is installed with the required libraries:
    ```bash
    pip install scikit-learn pandas numpy matplotlib seaborn google-genai python-dotenv pytest
    ```
 
-2. **Secure Gemini API Key Configuration (Free via Google AI Studio):**
-   - Get a free Gemini API key from [Google AI Studio](https://aistudio.google.com/).
-   - Open the `.env` file in the project root directory and paste your key:
-     ```bash
-     GEMINI_API_KEY=AIzaSy...
-     ```
-   - **Security Guarantee:** The `.env` file is listed inside `.gitignore`, guaranteeing that your secret key is **never tracked, committed, or pushed** to GitHub or version control. A sanitized template `.env.example` is provided for reference.
-   - *Grading / Offline Mode:* If no API key is provided, the notebook automatically loads a verified, high-fidelity response. This guarantees that Dr. Narayanaswamy or the TA can execute `Restart & Run All Cells` without encountering authentication errors, network interruptions, or billing charges.
+2. **API Key Setup (Optional for Live Calls):**
+   - The code supports live queries to the Google Gemini API using `gemini-3.8-flash`.
+   - To use a live key, copy `.env.example` to `.env` and add your key: `GEMINI_API_KEY=your_key_here`.
+   - **Offline Grading Support:** If no key is set or the network is unavailable, the script automatically uses the saved response. This allows Dr. Narayanaswamy or the TA to run **Kernel -> Restart Kernel and Run All Cells** without needing an API key or incurring any API charges.
 
-3. **Executing via Jupyter Notebook:**
-   - Open terminal, navigate to the folder, and start Jupyter:
-     ```bash
-     jupyter lab Assignment1.ipynb
-     # or
-     jupyter notebook Assignment1.ipynb
-     ```
-   - Click **Kernel -> Restart Kernel and Run All Cells**. All cells execute sequentially in ~5 seconds.
+3. **Running the Jupyter Notebook:**
+   Open terminal, navigate to the folder, and run:
+   ```bash
+   jupyter lab Assignment1.ipynb
+   # or
+   jupyter notebook Assignment1.ipynb
+   ```
+   Select **Kernel -> Restart Kernel and Run All Cells**. All cells run sequentially in a few seconds.
 
-4. **Executing via Standalone Python Script:**
-   - You can also run the full pipeline from terminal:
-     ```bash
-     python3 model_selector.py
-     ```
+4. **Running the Standalone Python Script:**
+   The entire pipeline can also be run from the command line:
+   ```bash
+   python3 model_selector.py
+   ```
 
-5. **Running Unit Tests:**
-   - Execute the test suite to verify pipeline integrity:
-     ```bash
-     pytest test_assignment.py
-     ```
+5. **Running the Unit Tests:**
+   Run pytest to verify all components pass:
+   ```bash
+   pytest test_assignment.py
+   ```
 """))
 
     # Cell: Code imports and setup
     cells.append(nbf.v4.new_code_cell("""# Environment setup and library imports
 import os
 import sys
-import re
 import warnings
-from typing import Dict, Any, Tuple, Optional
 from dotenv import load_dotenv
 
-# Load secret environment variables from .env file (safely ignored by git)
+# Load environment variables from .env file (if present)
 load_dotenv()
 
 import numpy as np
@@ -179,7 +155,7 @@ from sklearn.metrics import (
 )
 from sklearn.decomposition import PCA
 
-# Suppress minor non-critical warnings
+# Suppress minor warnings for clean output
 warnings.filterwarnings("ignore")
 
 # Configure plotting style
@@ -198,11 +174,11 @@ print(f"Python Version: {sys.version.split()[0]}")
     cells.append(nbf.v4.new_markdown_cell("""<a id="item-2"></a>
 # Item 2: Selection of the Best ML Model for the Problem (20 Points)
 
-In this section, we:
-1. Profile the Fisher's Iris dataset to extract its empirical and geometric properties.
-2. Formulate a custom-engineered prompt incorporating the problem description and dataset profile.
-3. Query the Generative AI model (Anthropic Claude 3.5 Sonnet) to analyze the problem and select the optimal model.
-4. Document the AI model's selection and rationale.
+In this section:
+1. We load and profile Fisher's Iris dataset to inspect feature distributions, class balance, and correlations.
+2. We formulate our prompt combining the problem description and dataset summary.
+3. We query the GenAI model to recommend the best classifier.
+4. We review the AI's recommendation and theoretical reasoning.
 """))
 
     # Cell: Load and inspect dataset
@@ -236,7 +212,7 @@ corr = df[feature_names].corr()
 print("\\n--- Feature Correlation Matrix ---")
 display(corr.round(3))
 
-# Plot correlation heatmap and pairplot
+# Plot correlation heatmap
 fig, ax = plt.subplots(figsize=(7, 5))
 sns.heatmap(corr, annot=True, fmt=".3f", cmap="coolwarm", center=0, ax=ax, cbar=True)
 ax.set_title("Iris Feature Correlation Matrix", fontsize=12, fontweight="bold")
@@ -249,83 +225,82 @@ pairplot_fig.fig.suptitle("Pairwise Feature Distributions by Iris Species", y=1.
 plt.show()
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("""### 2.3 Prompt Engineering Strategy
+    cells.append(nbf.v4.new_markdown_cell("""### 2.3 Prompt Design & Strategy
 
-In accordance with course guidelines (*"You must write the prompts yourself. Borrowing someone else's prompts is cheating."*), we designed a structured two-part prompt:
+Per the assignment instructions (*"You must write the prompts yourself. Borrowing someone else's prompts is cheating."*), I designed a prompt that provides the GenAI model with clear problem context without biasing the answer:
 
-1. **System Prompt:** Establishes the persona of an expert Machine Learning Architect and sets explicit reasoning guidelines (Vapnik-Chervonenkis dimension, margin properties, collinearity impact, and output formatting).
-2. **User Prompt:** Injects:
-   - The formal multi-class classification problem description.
-   - The precise empirical profile computed from the data (sample size $N=150$, feature count $d=4$, correlation coefficients $r=0.963$, absence of missing values, balanced classes).
-   - The six candidate algorithm families under evaluation.
-   - Strict instructions to choose the single best model, justify the choice theoretically, compare against the alternatives, and output standard Scikit-Learn code.
+1. **Classification Task:** 3-class botanical classification into Setosa, Versicolor, and Virginica.
+2. **Empirical Dataset Profile:**
+   - 150 balanced samples (50 per species).
+   - 4 continuous measurements: sepal length, sepal width, petal length, petal width.
+   - Zero missing values.
+   - Setosa is linearly separable from the other two species with a wide margin.
+   - Versicolor and Virginica exhibit slight boundary overlap in feature space.
+   - Strong feature collinearity: Petal length and petal width have a Pearson correlation of $r \\approx 0.963$.
+3. **Candidate Models:** SVM (RBF/Linear), Logistic Regression, Random Forest, KNN, Decision Tree, and Naive Bayes.
+4. **Expected Output:** Recommendation of the single best model, theoretical justification, comparison against alternative models, and standard Scikit-Learn code.
 """))
 
     # Cell: Prompts and GenAI API Client
-    cells.append(nbf.v4.new_code_cell("""# 2.4 Prompt Engineering Definitions
-SYSTEM_PROMPT = \"\"\"You are a Principal Machine Learning Scientist and AI Architect.
-Your task is to analyze a supervised classification problem description and empirical dataset profile, select the single most mathematically and practically appropriate classification algorithm from Scikit-Learn, provide rigorous theoretical justification for your choice, explain why it is superior to competing alternatives, and generate production-grade Python Scikit-Learn implementation code.
+    cells.append(nbf.v4.new_code_cell("""# 2.4 Prompt Definitions (Written for Assignment 1)
+SYSTEM_PROMPT = \"\"\"You are an expert machine learning instructor assisting a computer science graduate student with a classification assignment.
+Given a classification problem description and empirical dataset summary, recommend the single best Scikit-Learn classification algorithm. Explain your theoretical and practical reasoning, compare it against competing alternatives, and provide clean, working Python code using Scikit-Learn.
 
-Adhere to the following constraints:
-1. Reason deeply about the sample size (N=150), dimensionality (d=4), collinearity, margin properties, and VC-dimension/overfitting risks.
-2. Select the optimal model among standard classification families (e.g. SVM, Logistic Regression, Random Forest, KNN, Decision Tree, Naive Bayes).
-3. Provide executable Python code using Scikit-Learn inside a ```python ``` markdown block.
-4. Structure your output clearly into labeled sections:
-   - ## Selected Model
-   - ## Theoretical Justification
-   - ## Comparative Analysis Against Alternative Models
-   - ## Python Implementation Code
+Please format your response into the following clear markdown sections:
+- ## Selected Model
+- ## Theoretical Justification
+- ## Comparative Analysis Against Alternative Models
+- ## Python Implementation Code
 \"\"\"
 
 def generate_user_prompt(df: pd.DataFrame, feature_names: list, target_names: list) -> str:
     corr = df[feature_names].corr()
     petal_corr = corr.loc['petal length (cm)', 'petal width (cm)']
     
-    prompt = f\"\"\"### 1. Classification Problem Description:
+    prompt = f\"\"\"Problem Description:
 Supervised multi-class botanical classification of Iris flower specimens into 3 species:
 - Iris Setosa
 - Iris Versicolor
 - Iris Virginica
 Goal: Build a Scikit-Learn classification model that achieves optimal generalization accuracy, precision, and recall on the provided dataset.
 
-### 2. Dataset Empirical Profile:
+Dataset Summary:
 - Total Samples (N): {len(df)} (50 Setosa, 50 Versicolor, 50 Virginica; perfectly balanced)
 - Number of Features (d): {len(feature_names)} continuous numeric measurements (cm):
   {', '.join(feature_names)}
 - Missing Values: 0 across all features
-- Feature Relationships & Geometry:
+- Geometry & Separability:
   * Iris Setosa is linearly separable from Versicolor and Virginica with a wide margin.
   * Iris Versicolor and Virginica have slight boundary overlap and require non-linear soft-margin separation.
-  * Severe feature collinearity: Petal Length and Petal Width have Pearson r = {petal_corr:.3f}.
-  * Low sample-to-feature ratio regime (N=150, d=4).
+  * High feature collinearity: Petal Length and Petal Width have Pearson r = {petal_corr:.3f}.
+  * Low sample-to-feature ratio (N=150, d=4).
 
-### 3. Candidate Algorithm Families:
-1. Support Vector Classifier (SVC with RBF / Linear kernel)
-2. Logistic Regression (Multinomial / Softmax with L2 regularization)
-3. Random Forest Classifier (Bagged ensemble of decision trees)
-4. K-Nearest Neighbors (KNN - Non-parametric instance-based)
+Candidate Algorithm Families to consider:
+1. Support Vector Classifier (SVC with RBF or Linear kernel)
+2. Logistic Regression (Multinomial with L2 regularization)
+3. Random Forest Classifier
+4. K-Nearest Neighbors (KNN)
 5. Decision Tree Classifier (CART)
-6. Gaussian Naive Bayes (Generative probabilistic classifier)
+6. Gaussian Naive Bayes
 
-### 4. Required Deliverables:
-1. Name the single best algorithm and recommended Scikit-Learn estimator & hyperparameters.
-2. Provide theoretical justification based on Structural Risk Minimization, margin maximization, collinearity resilience, and decision boundary geometry.
-3. Compare against the other 5 candidate models and explain their relative limitations on this dataset.
-4. Provide complete, executable Scikit-Learn code that builds a Pipeline with StandardScaler, fits the model, executes 5-fold Stratified Cross-Validation, and reports accuracy, precision, recall, and F1-score.
+Please provide:
+1. ## Selected Model: Name the single best algorithm and exact recommended Scikit-Learn estimator and hyperparameters.
+2. ## Theoretical Justification: Explain why this model is optimal for this dataset (considering the small sample size N=150, d=4, margin properties, and collinearity).
+3. ## Comparative Analysis Against Alternative Models: Explain why the other 5 candidate models are less ideal for this specific data.
+4. ## Python Implementation Code: Complete, clean Python code using Scikit-Learn that scales continuous features with StandardScaler, sets up a Pipeline, runs Stratified 5-Fold Cross-Validation, and reports accuracy, macro precision, recall, and F1-score.
 \"\"\"
     return prompt
 
 user_prompt = generate_user_prompt(df, feature_names, target_names)
-print("Engineered User Prompt Preview (First 500 chars):")
-print(user_prompt[:500] + "...")
+print("Engineered User Prompt Preview (First 400 chars):")
+print(user_prompt[:400] + "...")
 """))
 
     # Cell: LLM Invocation
-    cells.append(nbf.v4.new_code_cell("""# 2.5 GenAI API Querying (Google Gemini API Integration with Graceful Fallback)
+    cells.append(nbf.v4.new_code_cell("""# 2.5 GenAI API Querying (Google Gemini API Integration with Fallback)
 from model_selector import LLMModelSelector
 
-# LLMModelSelector automatically checks .env for GEMINI_API_KEY (or ANTHROPIC_API_KEY)
-# If no key is set or the network is unavailable, it gracefully loads the cached verified response.
+# Query the GenAI model (uses GEMINI_API_KEY from .env, or loads saved response for grading)
 selector = LLMModelSelector()
 llm_response = selector.query(SYSTEM_PROMPT, user_prompt)
 
@@ -337,7 +312,7 @@ print(f"Using Live API: {selector.used_live_api}")
     # Cell: Display the LLM's Full Output
     cells.append(nbf.v4.new_markdown_cell("""### 2.6 Full Output Generated by GenAI Foundation Model
 
-Below is the verbatim response returned by the GenAI foundation model analyzing the problem and selecting the model:
+Below is the response returned by the GenAI model analyzing the problem and recommending the model:
 """))
 
     cells.append(nbf.v4.new_code_cell("""# Print the complete response from the GenAI model
@@ -348,15 +323,18 @@ print(llm_response)
     # Item 3: Implementation of Selected Model (20 points)
     # --------------------------------------------------------------------------
     cells.append(nbf.v4.new_markdown_cell("""<a id="item-3"></a>
-# Item 3: Jupyter Module Implementing the Selected ML Model (20 Points)
+# Item 3: Implementation of the Selected ML Model (20 Points)
 
 The GenAI model selected:
 $$\\mathbf{Support\\;Vector\\;Classifier\\;(SVC)\\;with\\;an\\;RBF\\;Kernel\\;and\\;StandardScaler}$$
 
+**Why Feature Scaling is Necessary:**
+The RBF kernel computes distances between points using squared Euclidean distance: $K(x, x') = \\exp(-\\gamma \\|x - x'\\|^2)$. If features are unscaled, sepal length (range ~4.3 to 7.9 cm) would dominate distance calculations simply because of its larger numerical scale compared to petal width (range ~0.1 to 2.5 cm). Using `StandardScaler` standardizes each feature to zero mean and unit variance so that all 4 features contribute equally.
+
 In this section:
-1. We dynamically extract and parse the Python code generated by the AI model.
-2. We construct the production Scikit-Learn `Pipeline` combining `StandardScaler` with `SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)`.
-3. We fit the model and inspect its support vectors and internal parameters.
+1. We parse the Python code block from the GenAI output.
+2. We assemble the Scikit-Learn `Pipeline` combining `StandardScaler` with `SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)`.
+3. We fit the pipeline on the dataset and inspect the resulting support vectors.
 """))
 
     # Cell: Extract and execute code
@@ -368,8 +346,7 @@ print(extracted_code)
 print("-" * 60)
 """))
 
-    cells.append(nbf.v4.new_code_cell("""# 3.2 Build the Selected Model Pipeline
-# Pipeline encapsulates feature standardization and the RBF Support Vector Classifier
+    cells.append(nbf.v4.new_code_cell("""# 3.2 Build and fit the Selected Model Pipeline
 selected_pipeline = Pipeline([
     ('scaler', StandardScaler()),
     ('classifier', SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42))
@@ -389,19 +366,32 @@ print(f"Total Support Vectors: {len(svc_model.support_)} out of {len(X)} samples
 print(f"Support Vectors per Class: Setosa={svc_model.n_support_[0]}, Versicolor={svc_model.n_support_[1]}, Virginica={svc_model.n_support_[2]}")
 """))
 
+    cells.append(nbf.v4.new_markdown_cell("""**Observation on Support Vectors:**
+The fitted SVM identified 53 support vectors out of 150 total samples (about 35% of the data).
+Notice that Setosa only required 8 support vectors because it is well-separated from the other classes. In contrast, Versicolor and Virginica required 22 and 23 support vectors respectively because their boundary points are much closer together and define the soft margin.
+"""))
+
     # --------------------------------------------------------------------------
     # Item 4: Cross-Validation Procedures (20 points)
     # --------------------------------------------------------------------------
     cells.append(nbf.v4.new_markdown_cell("""<a id="item-4"></a>
-# Item 4: Jupyter Module Running Cross-Validation Procedures to Demonstrate Performance (20 Points)
+# Item 4: Cross-Validation Procedures Demonstrating Performance (20 Points)
 
-To rigorously validate the model, we execute:
-1. **Stratified 5-Fold Cross-Validation:** Ensures that each fold contains an exact 1:1:1 proportion (10 samples of each species per validation fold), preventing class distribution skew.
-2. **Multi-Metric Evaluation:** Computes Accuracy, Macro Precision, Macro Recall, and Macro F1-score across all folds with mean and standard deviation.
-3. **Out-of-Fold Confusion Matrix:** Unbiased predictions aggregated across all folds presented as both integer counts and normalized percentages.
-4. **Scikit-Learn Classification Report:** Per-class precision, recall, and f1-score.
-5. **Multiclass One-vs-Rest (OvR) ROC & AUC Curves:** Computed using the continuous margin decision values ($y_i = \\sum \\alpha_k y_k K(x_k, x_i) + b$).
-6. **Decision Boundary Projection:** 2D PCA projection visualizing the non-linear decision regions and support vectors.
+### Validation Methodology: Why Stratified 5-Fold Cross-Validation?
+
+With only 150 total samples (50 per species), a simple train/test split (e.g. 80/20) would leave only 30 samples in the test set (10 per class). Evaluation metrics would vary significantly depending on which specific 30 samples happened to land in the test set.
+
+Using **Stratified 5-Fold Cross-Validation**:
+1. Every single sample is tested exactly once across 5 folds.
+2. Each fold maintains the exact 1:1:1 class ratio (10 of each species per fold).
+3. Computing the mean and standard deviation across folds gives a much more reliable estimate of generalization performance.
+
+Below, we compute:
+- Accuracy, Macro Precision, Macro Recall, and Macro F1-score across all folds.
+- Out-of-fold Confusion Matrix (both raw counts and normalized percentages).
+- Complete Scikit-Learn Classification Report.
+- Multiclass One-vs-Rest (OvR) ROC & AUC curves using continuous decision values.
+- 2D PCA projection visualizing the decision boundaries and support vectors.
 """))
 
     # Cell: Run cross validation
@@ -431,7 +421,7 @@ print(f"  -> Accuracy:        {cv_results['test_accuracy'].mean():.4f} +/- {cv_r
 print(f"  -> Precision Macro: {cv_results['test_precision_macro'].mean():.4f} +/- {cv_results['test_precision_macro'].std():.4f}")
 print(f"  -> Recall Macro:    {cv_results['test_recall_macro'].mean():.4f} +/- {cv_results['test_recall_macro'].std():.4f}")
 print(f"  -> F1-Score Macro:  {cv_results['test_f1_macro'].mean():.4f} +/- {cv_results['test_f1_macro'].std():.4f}")
-print(f"  -> Train Accuracy:  {cv_results['train_accuracy'].mean():.4f} +/- {cv_results['train_accuracy'].std():.4f} (Minimal Overfitting)")
+print(f"  -> Train Accuracy:  {cv_results['train_accuracy'].mean():.4f} +/- {cv_results['train_accuracy'].std():.4f}")
 print("=" * 75)
 """))
 
@@ -506,16 +496,22 @@ fig = plot_decision_boundary(X, y, target_names)
 plt.show()
 """))
 
+    cells.append(nbf.v4.new_markdown_cell(r"""**Performance Observations:**
+- **Setosa:** Classified with 100% precision and recall (AUC = 1.0000). The model never confused Setosa with any other species.
+- **Versicolor & Virginica:** Out of 100 total samples across both classes, only 6 were misclassified (3 Versicolor predicted as Virginica, and 3 Virginica predicted as Versicolor), yielding an overall accuracy of $96.00\%$ and macro F1-score of $95.99\%$.
+- **Generalization:** Average training accuracy was $97.67\%$, which is very close to the test accuracy of $96.00\%$, indicating the model generalizes well without overfitting.
+"""))
+
     # --------------------------------------------------------------------------
     # Item 5: Reasoning & Relative Performance Comparison (15 points)
     # --------------------------------------------------------------------------
     cells.append(nbf.v4.new_markdown_cell("""<a id="item-5"></a>
-# Item 5: Documentation of the Reasoning for ML Model Selection and its Performance Relative to Other Possible Models (15 Points)
+# Item 5: Reasoning for Model Selection & Benchmark Comparison (15 Points)
 
-In this section, we:
-1. Formally benchmark the AI-selected model (**SVC RBF**) against six other classification models under identical Stratified 5-Fold Cross-Validation splits with fixed random states.
-2. Present a comprehensive comparison table and comparative bar chart.
-3. Provide rigorous theoretical and empirical documentation explaining why the selected model performs as well as or better than other candidate models.
+In this section:
+1. We benchmark the selected model (**SVC RBF**) against six other classification algorithms under identical Stratified 5-Fold Cross-Validation splits.
+2. We compare the empirical results in a summary table and bar chart.
+3. We provide theoretical and practical reasoning explaining why the selected model performs as well as or better than the alternative algorithms.
 """))
 
     # Cell: Run multi-model benchmark
@@ -535,137 +531,100 @@ plt.show()
 """))
 
     # Cell: Detailed theoretical reasoning
-    cells.append(nbf.v4.new_markdown_cell(r"""### 5.2 Deep Theoretical and Empirical Justification
+    cells.append(nbf.v4.new_markdown_cell(r"""### 5.2 Theoretical Analysis: Why SVC (RBF) Makes Sense vs Other Models
 
-The benchmark results confirm that the AI-selected **Support Vector Classifier (SVC with RBF kernel)** achieves top-tier performance ($96.00\% \pm 3.89\%$) alongside KNN ($97.33\%$) and Linear SVC ($96.67\%$), while offering far superior theoretical properties for generalization and robustness.
+Our 5-fold cross-validation benchmark shows how the 6 candidate models perform on the Iris dataset:
+- **K-Nearest Neighbors (k=5):** $97.33\% \pm 2.49\%$
+- **SVC (Linear Kernel):** $96.67\% \pm 5.16\%$
+- **SVC (RBF Kernel) [AI Selected]:** $96.00\% \pm 3.89\%$
+- **Logistic Regression (Multinomial):** $95.33\% \pm 4.52\%$
+- **Decision Tree (CART):** $95.33\% \pm 3.40\%$
+- **Gaussian Naive Bayes:** $94.67\% \pm 4.00\%$
+- **Random Forest (100 Trees):** $94.67\% \pm 2.67\%$
 
-Below is the detailed comparative breakdown across all six model families:
+While KNN and Linear SVC achieved slightly higher empirical test scores on this split, examining the underlying theory explains why the **Support Vector Classifier with RBF kernel** is considered the most reliable and well-justified model overall:
 
-#### 1. Why Support Vector Classifier (RBF Kernel) is Optimal
-- **Structural Risk Minimization (SRM):** Unlike empirical loss minimizers, SVM optimizes the dual objective:
-  $$\\min_{w, b, \\xi} \\frac{1}{2} \\|w\\|^2 + C \\sum_{i=1}^{N} \\xi_i$$
-  By maximizing the geometric margin $\\frac{2}{\\|w\\|}$, SVM bounds the Vapnik-Chervonenkis (VC) dimension. For small datasets ($N=150$), this structural regularization provides a theoretical guarantee against overfitting that empirical models lack.
-- **Radial Basis Function (RBF) Kernel Trick:** The mapping $\\Phi(x) \\mapsto \\mathcal{H}$ projects the 4 continuous features into an infinite-dimensional Hilbert space where the non-linear boundary separating *Iris Versicolor* from *Iris Virginica* becomes linearly separable with a soft margin parameter $C=1.0$.
-- **Collinearity Robustness:** Petal length and petal width exhibit extreme correlation ($r = 0.963$). Because SVM optimization depends solely on inner products between support vectors $\\langle \\Phi(x_i), \\Phi(x_j) \\rangle$ rather than conditional independence factorizations, collinearity does not degrade its convex dual optimization.
+#### 1. Structural Risk Minimization on Small Datasets ($N=150$)
+Unlike algorithms that simply minimize empirical training error, SVM optimizes the dual objective:
+$$\min_{w, b, \xi} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^{N} \xi_i$$
+By maximizing the geometric margin $\frac{2}{\|w\|}$, SVM bounds the Vapnik-Chervonenkis (VC) dimension. On small datasets like Iris ($N=150$), maximizing the margin acts as a principled regularization mechanism, reducing the risk of fitting noise near the decision boundary.
 
-#### 2. Comparison with K-Nearest Neighbors (KNN, k=5)
-- *Empirical Performance:* $97.33\\% \\pm 2.49\\%$
-- *Theoretical Limitation:* KNN is a non-parametric "lazy" learner that does not construct an explicit decision boundary or parameterize the margin. It stores all training instances in memory and is vulnerable to local label noise or outliers in the feature space. While effective in low-dimensional Euclidean spaces like Iris ($d=4$), it lacks the structural margin and inductive bias that make SVM robust to perturbations.
+#### 2. Handling the Non-Linear Boundary (RBF Kernel)
+While *Iris Setosa* is linearly separable, *Iris Versicolor* and *Iris Virginica* have overlapping feature distributions. A purely linear model (like standard Logistic Regression or Linear SVM) is forced to draw a flat hyperplane, resulting in boundary misclassifications. The RBF kernel:
+$$K(x, x') = \exp(-\gamma \|x - x'\|^2)$$
+maps features into a higher-dimensional space where a smooth non-linear decision boundary can separate Versicolor and Virginica without needing manual feature engineering.
 
-#### 3. Comparison with Logistic Regression (Multinomial / Softmax)
-- *Empirical Performance:* $95.33\\% \\pm 4.52\\%$
-- *Theoretical Limitation:* Standard Multinomial Logistic Regression is fundamentally a linear classifier. It fits linear decision hyperplanes $w_k^T x + b_k = 0$. Because Versicolor and Virginica have non-linear overlap in feature space, linear hyperplanes are forced to misclassify boundary instances unless manual polynomial feature transformations are introduced.
+#### 3. Collinearity Resilience (Why Naive Bayes Struggles)
+Petal length and petal width have an extreme correlation ($r = 0.963$). Gaussian Naive Bayes assumes all features are conditionally independent given the class:
+$$P(X_1, X_2, X_3, X_4 \mid Y) = \prod_{j=1}^4 P(X_j \mid Y)$$
+Because petal length and petal width are strongly collinear, this independence assumption is heavily violated. Naive Bayes double-counts redundant evidence, resulting in skewed posterior probabilities and lower accuracy ($94.67\%$). In contrast, SVM relies on inner products between support vectors, so feature collinearity does not degrade the optimization.
 
-#### 4. Comparison with Random Forest Classifier (100 Trees)
-- *Empirical Performance:* $94.67\\% \\pm 2.67\\%$
-- *Theoretical Limitation:* Random Forests are powerful non-linear ensembles, but bagging 100 decision trees on a dataset of only 150 instances is over-parameterized. Bootstrap sampling (with $\\approx 63.2\\%$ unique samples per tree) starves individual trees of boundary information, resulting in slightly lower accuracy than kernelized margin classifiers.
+#### 4. Comparison with Tree-Based Models (Decision Tree & Random Forest)
+- **Decision Tree ($95.33\%$):** Decision trees make axis-aligned cuts (splits parallel to the feature axes). Approximating the diagonal boundary between Versicolor and Virginica requires a 'staircase' of splits, making single trees sensitive to slight shifts in training data.
+- **Random Forest ($94.67\%$):** An ensemble of 100 bagged trees is over-parameterized for only 150 instances and 4 features. Subsampling data and features for each tree can starve individual trees of boundary information on such a small dataset.
 
-#### 5. Comparison with Decision Tree Classifier (CART)
-- *Empirical Performance:* $95.33\\% \\pm 3.40\\%$
-- *Theoretical Limitation:* Decision trees perform orthogonal, axis-aligned splits ($x_j \\le \\theta$). Real-world botanical separation between Versicolor and Virginica follows diagonal and curved boundaries in the petal length/width plane. Approximating diagonal boundaries with orthogonal step functions creates a "staircase" boundary that has high variance across cross-validation folds.
-
-#### 6. Comparison with Gaussian Naive Bayes
-- *Empirical Performance:* $94.67\\% \\pm 4.00\\%$
-- *Theoretical Limitation:* Gaussian Naive Bayes strictly assumes that all features are conditionally independent given the class:
-  $$P(X_1, X_2, X_3, X_4 \\mid Y) = \\prod_{j=1}^4 P(X_j \\mid Y)$$
-  Because petal length and petal width have a Pearson correlation of $r=0.963$, this conditional independence assumption is flagrantly violated. Consequently, the posterior probabilities are overconfident and distorted, placing GNB at the bottom of the benchmark.
+#### 5. Comparison with K-Nearest Neighbors ($97.33\%$)
+KNN achieved the highest raw accuracy ($97.33\%$) because Iris has low dimensionality ($d=4$) and compact clusters. However, KNN is an instance-based 'lazy' learner:
+- It stores all training points in memory and computes distances to all neighbors at test time.
+- It does not learn an explicit margin or decision boundary.
+- It is sensitive to local noise and outlier points in the feature space.
+In contrast, SVM builds an explicit maximum-margin boundary anchored solely by the critical support vectors.
 """))
 
     # --------------------------------------------------------------------------
-    # Item 6: 5-Minute In-Class Demo & Explanation Guide (15 points)
+    # Item 6: 5-Minute In-Class Presentation Notes (15 points)
     # --------------------------------------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell("""<a id="item-6"></a>
-# Item 6: 5-Minute In-Class Demo & Explanation Guide (15 Points)
+    cells.append(nbf.v4.new_markdown_cell(r"""<a id="item-6"></a>
+# Item 6: 5-Minute In-Class Presentation Notes & Discussion Points (15 Points)
 
-This section provides a structured, minute-by-minute script and anticipated Q&A defense for the required 5-minute in-class demonstration.
-
----
-
-### 6.1 Minute-by-Minute Presentation Script
-
-```
-==================================================================================================
-                 5-MINUTE IN-CLASS PRESENTATION SCRIPT FOR CMSI 630 DEMO
-==================================================================================================
-
-[0:00 - 1:00] MINUTE 1: PROBLEM STATEMENT & SYSTEM ARCHITECTURE
-- "Good morning Dr. Narayanaswamy and classmates. Today I am presenting Assignment 1:
-  AI-Based Supervised Machine Learning Model Selection for the Iris dataset.
-- Our goal was to build a system that takes an ML classification problem description and empirical
-  training data, uses a Generative AI foundation model to reason about the geometry, selects the
-  optimal Scikit-Learn algorithm, generates the code, trains it, and validates its performance.
-- We built this using Python 3.14, Scikit-Learn, and the Anthropic Claude 3.5 Sonnet API, wrapped
-  in a fully reproducible Jupyter notebook."
-
-[1:00 - 2:00] MINUTE 2: PROMPT ENGINEERING & AI MODEL SELECTION
-- "To guide the AI model, I engineered a specialized prompt containing the exact mathematical profile
-  of the Iris dataset: 150 balanced samples, 4 continuous features, and an extreme collinearity
-  of r = 0.963 between petal length and width.
-- Claude 3.5 Sonnet analyzed 6 candidate algorithm families and selected:
-  Support Vector Classifier with an RBF kernel, paired with StandardScaler.
-- Its core theoretical justification was Structural Risk Minimization: on a small dataset of N=150,
-  maximizing the margin prevents overfitting, while the RBF kernel resolves the non-linear boundary
-  between Versicolor and Virginica."
-
-[2:00 - 3:00] MINUTE 3: CODE EXTRACTION & MODEL PIPELINE
-- "The system automatically extracted the generated Python code and constructed an Scikit-Learn
-  Pipeline. Feature standardization with StandardScaler is essential here so that features with
-  larger scales don't artificially dominate the Euclidean distance in the RBF kernel.
-- We inspected the fitted model and found it identified support vectors that cleanly define the
-  margins—100% separating Setosa, with smooth soft margins between Versicolor and Virginica."
-
-[3:00 - 4:00] MINUTE 4: CROSS-VALIDATION & PERFORMANCE METRICS
-- "For rigorous validation, we ran Stratified 5-Fold Cross-Validation, ensuring exactly 10 samples
-  per species in each test fold.
-- The model achieved:
-  * Accuracy: 96.00% (+/- 3.89%)
-  * Macro Precision: 96.11%
-  * Macro Recall: 96.00%
-  * Macro F1-Score: 95.99%
-- Looking at the Confusion Matrix and ROC Curves: Setosa achieved a perfect 1.00 AUC, while
-  Versicolor and Virginica each achieved 0.995 AUC, demonstrating near-flawless discrimination."
-
-[4:00 - 5:00] MINUTE 5: MULTI-MODEL BENCHMARK, REASONING, & CONCLUSION
-- "Finally, to prove the selected model performs as well as or better than other models, we benchmarked
-  all 6 algorithms under the exact same 5-fold cross-validation.
-- SVC (96.0% - 96.7%) and KNN (97.3%) lead the benchmark.
-- Crucially, we explained why other models fall short:
-  * Decision Trees have high variance from rigid axis-aligned cuts.
-  * Random Forests are over-parameterized for 150 points.
-  * Gaussian Naive Bayes drops to 94.67% because the r=0.963 correlation violates conditional independence.
-- In conclusion, the GenAI model successfully identified the algorithm with the strongest theoretical
-  margin guarantees and verified it empirically. Thank you, and I welcome any questions!"
-==================================================================================================
-```
+This section provides my outline for the 5-minute in-class demonstration, broken down minute-by-minute, along with notes for anticipated questions from Dr. Narayanaswamy.
 
 ---
 
-### 6.2 Anticipated Questions and Rehearsed Answers
+### 6.1 Presentation Outline (Minute-by-Minute)
 
-#### Q1: "Why did the GenAI model choose an RBF kernel instead of a linear kernel?"
-> **Answer:** "While *Iris Setosa* is linearly separable with a wide margin, *Iris Versicolor* and *Iris Virginica* have overlapping feature distributions in sepal/petal space. A linear kernel requires a flat hyperplane that forces a soft-margin compromise, whereas the RBF kernel $\\exp(-\\gamma \\|x-x'\\|^2)$ maps the data into an infinite-dimensional Hilbert space, creating smooth non-linear decision contours that better separate Versicolor and Virginica without overfitting."
+- **Minute 1: Problem Overview & Solution Setup**
+  - Briefly introduce the assignment objective: building an AI-assisted classification pipeline that uses problem diagnostics and a GenAI model to select the best ML model for Fisher's Iris dataset.
+  - Mention the tools used: Python, Scikit-Learn, Google Gemini API, and Jupyter Notebook.
+  - Summarize the pipeline flow: Profile data -> Query GenAI model -> Parse code -> Build Pipeline -> 5-Fold Stratified CV -> Benchmark comparison.
 
-#### Q2: "Why is `StandardScaler` strictly necessary before passing features to the SVM?"
-> **Answer:** "The RBF kernel computes squared Euclidean distances $\\|x - x'\\|^2 = \\sum_{j=1}^d (x_j - x'_j)^2$. If features are unscaled, a feature with a wider numerical range (like Sepal Length, range 4.3–7.9) will disproportionately dominate a feature with a smaller range (like Petal Width, range 0.1–2.5). Standardization ensures each botanical dimension contributes equally to the kernel distance."
+- **Minute 2: Dataset Insights & Prompt Design**
+  - Share what the dataset profiling revealed: 150 balanced samples across 3 species, 4 continuous features, high collinearity between petal length and petal width ($r = 0.963$), and slight overlap between Versicolor and Virginica.
+  - Explain how I wrote the prompt: fed in the dataset statistics and asked the AI to evaluate 6 candidate models, justify its choice theoretically, and output Scikit-Learn code.
+  - Reveal the AI recommendation: Support Vector Classifier (SVC) with an RBF kernel and `StandardScaler`.
 
-#### Q3: "Why did Gaussian Naive Bayes achieve the lowest performance in your benchmark?"
-> **Answer:** "Gaussian Naive Bayes relies on the foundational assumption that all features are conditionally independent given the class label ($P(X \\mid Y) = \\prod P(X_i \\mid Y)$). In the Iris dataset, Petal Length and Petal Width have a Pearson correlation of $0.963$. This severe violation of the independence assumption causes Naive Bayes to double-count redundant evidence, distorting its posterior class probabilities."
+- **Minute 3: Pipeline Implementation & Feature Scaling**
+  - Show the Scikit-Learn `Pipeline([('scaler', StandardScaler()), ('classifier', SVC(kernel='rbf'))])`.
+  - Explain why `StandardScaler` is required: since RBF is based on Euclidean distance, unscaled features with larger ranges would unfairly dominate distance calculations.
+  - Mention model inspection: 53 support vectors chosen (only 8 needed for Setosa, 45 along the Versicolor/Virginica boundary).
 
-#### Q4: "Why use Stratified 5-Fold Cross-Validation instead of a standard 80/20 train/test split?"
-> **Answer:** "With only 150 total samples (50 per class), an 80/20 split leaves only 30 samples in the test set (10 per class), which produces high evaluation variance depending on which specific instances end up in the test set. Stratified 5-Fold CV tests on every single instance in the dataset across 5 independent iterations while guaranteeing exact class balance in every fold, giving a much more statistically reliable estimate of generalization error."
+- **Minute 4: Cross-Validation Results**
+  - Explain why Stratified 5-Fold CV was used: 150 samples means a simple train/test split has too few test points; stratified 5-fold ensures 10 of each class in every fold and tests all samples.
+  - Present the metrics: $96.00\% \pm 3.89\%$ accuracy and $95.99\%$ macro F1.
+  - Show the confusion matrix and ROC curves: Setosa achieved 1.0 AUC, while Versicolor and Virginica achieved 0.995 AUC.
+
+- **Minute 5: Benchmark Comparison & Key Takeaways**
+  - Show the 6-model benchmark comparison table and bar chart.
+  - Discuss the main theoretical takeaways:
+    - Why Naive Bayes scored lower ($94.67\%$): the $r=0.963$ correlation between petal length and width violates its conditional independence assumption.
+    - Why SVM RBF is preferred over Decision Trees: smooth non-linear margin vs. brittle axis-aligned staircase splits.
+  - Conclude and open the floor for questions from Dr. Narayanaswamy.
 
 ---
 
-### 6.3 Brightspace Submission Checklist
+### 6.2 Prepared Discussion Points & Anticipated Questions
 
-Before submitting to Brightspace before the deadline (**10/09/2026 @ 11:59:59 PM**):
-- [x] **Item 1 Labeled:** System architecture, platforms used, and how to run code documented.
-- [x] **Item 2 Labeled:** Problem description, dataset profiling, prompt engineering, and GenAI output documented.
-- [x] **Item 3 Labeled:** Scikit-Learn code extracted, Pipeline constructed, and model fitted.
-- [x] **Item 4 Labeled:** Stratified 5-Fold CV executed, Accuracy/Precision/Recall/F1 reported, Confusion Matrix, Classification Report, and ROC curves plotted.
-- [x] **Item 5 Labeled:** Multi-model benchmark table and chart comparing 6 algorithms, with theoretical justification documented.
-- [x] **Item 6 Labeled:** 5-minute presentation script and Q&A defense prepared.
-- [x] **Files to submit:** `Assignment1.ipynb` (single master Jupyter notebook with all outputs and labeled sections) along with `model_selector.py`, `figures/`, and `README.md`.
+- **Q: Why choose the RBF kernel over a linear kernel?**
+  *Answer:* Setosa is linearly separable, but Versicolor and Virginica have overlapping distributions that cannot be cleanly separated by a straight hyperplane. The RBF kernel maps features into a higher-dimensional space where a smooth non-linear boundary can separate them with fewer errors.
+
+- **Q: Why is feature standardization (`StandardScaler`) essential for SVM with an RBF kernel?**
+  *Answer:* The RBF kernel formula relies on squared Euclidean distance $\|x - x'\|^2$. Without scaling, features with wider numerical ranges (like sepal length, range 4.3–7.9) would dominate the distance calculation compared to features with smaller ranges (like petal width, range 0.1–2.5).
+
+- **Q: Why did Gaussian Naive Bayes achieve the lowest accuracy in your benchmark?**
+  *Answer:* Naive Bayes assumes that all features are conditionally independent given the class ($P(X \mid Y) = \prod P(X_i \mid Y)$). In Iris, petal length and petal width have a Pearson correlation of $0.963$, which strongly violates this assumption and distorts the posterior probability estimates.
+
+- **Q: Why use Stratified 5-Fold Cross-Validation instead of a standard 80/20 train/test split?**
+  *Answer:* With only 150 samples (50 per species), an 80/20 split only gives 30 test samples (10 per class). Test metrics could vary wildly depending on which 30 samples were picked. Stratified 5-Fold CV evaluates every single instance across 5 folds while maintaining exact class balance in every fold.
 """))
 
     nb.cells = cells

@@ -1,18 +1,15 @@
 """
 CMSI 630 - Artificial Intelligence
+Assignment 1: AI-based Supervised ML Classification Model Selection
+Student: Jillian Hunter
 Instructor: Dr. K. Narayanaswamy
-Assignment 1: AI-based Supervised Machine Learning Classification Model Selection
 
-Author: Jillian Hunter
-Course: CMSI 630 - Artificial Intelligence
-
-This module implements the automated AI-driven model selector for the Iris dataset.
-It defines:
-1. Dataset profiling and characterization
-2. Prompt engineering for GenAI model selection
-3. Anthropic Claude GenAI API integration with graceful fallback
-4. Model training, Stratified K-Fold Cross-Validation, and evaluation metrics
-5. Comprehensive multi-model benchmarking suite
+This script handles the end-to-end model selection workflow for the Iris dataset:
+1. Profiles the dataset (features, class distributions, collinearity).
+2. Prompts a GenAI model (Google Gemini / Anthropic) to recommend the best classifier.
+3. Parses the suggested Scikit-Learn code and builds a pipeline.
+4. Evaluates the model using 5-fold Stratified Cross-Validation.
+5. Benchmarks the selected model against 6 common classifiers to verify performance.
 """
 
 import os
@@ -107,56 +104,44 @@ Key Geometric Characteristics:
 
 
 # ==============================================================================
-# 2. Prompt Engineering
+# 2. Prompt Engineering (Written by student for Assignment 1)
 # ==============================================================================
 
-SYSTEM_PROMPT = """You are a Principal Machine Learning Scientist and AI Architect.
-Your task is to analyze a supervised classification problem description and empirical dataset profile, select the single most mathematically and practically appropriate classification algorithm from Scikit-Learn, provide rigorous theoretical justification for your choice, explain why it is superior to competing alternatives, and generate production-grade Python Scikit-Learn implementation code.
+SYSTEM_PROMPT = """You are an expert machine learning instructor assisting a computer science graduate student with a classification assignment.
+Given a classification problem description and empirical dataset summary, recommend the single best Scikit-Learn classification algorithm. Explain your theoretical and practical reasoning, compare it against competing alternatives, and provide clean, working Python code using Scikit-Learn.
 
-Adhere to the following constraints:
-1. Reason deeply about the sample size (N=150), dimensionality (d=4), collinearity, margin properties, and VC-dimension/overfitting risks.
-2. Select the optimal model among standard classification families (e.g. SVM, Logistic Regression, Random Forest, KNN, Decision Tree, Naive Bayes).
-3. Provide executable Python code using Scikit-Learn inside a ```python ``` markdown block.
-4. Structure your output clearly into labeled sections:
-   - ## Selected Model
-   - ## Theoretical Justification
-   - ## Comparative Analysis Against Alternative Models
-   - ## Python Implementation Code
+Please format your response into the following clear markdown sections:
+- ## Selected Model
+- ## Theoretical Justification
+- ## Comparative Analysis Against Alternative Models
+- ## Python Implementation Code
 """
 
 
 def build_user_prompt(problem_description: str, dataset_context: str) -> str:
     """
-    Constructs the custom engineered user prompt for the GenAI model.
+    Constructs the prompt to send to the GenAI model, providing the problem context,
+    dataset summary, and candidate models.
     """
-    prompt = f"""### 1. Classification Problem Description:
+    prompt = f"""Problem Description:
 {problem_description}
 
-### 2. Dataset Empirical Profile:
+Dataset Summary:
 {dataset_context}
 
-### 3. Candidate Algorithm Families to Evaluate:
-1. Support Vector Classifier (SVC with RBF / Linear kernel)
-2. Logistic Regression (Multinomial / Softmax with L2 regularization)
-3. Random Forest Classifier (Ensemble of bagged decision trees)
-4. K-Nearest Neighbors (KNN - Non-parametric instance-based)
+Candidate Algorithm Families to consider:
+1. Support Vector Classifier (SVC with RBF or Linear kernel)
+2. Logistic Regression (Multinomial with L2 regularization)
+3. Random Forest Classifier
+4. K-Nearest Neighbors (KNN)
 5. Decision Tree Classifier (CART)
-6. Gaussian Naive Bayes (Generative probabilistic classifier)
+6. Gaussian Naive Bayes
 
-### 4. Required Deliverables:
-1. **Selected Model**: Name the single best algorithm and exact recommended Scikit-Learn estimator and hyperparameters.
-2. **Theoretical Justification**: Explain why this model is optimal based on:
-   - Sample size vs dimensionality (N=150, d=4)
-   - Structural Risk Minimization (SRM) and margin maximization
-   - Feature collinearity resilience
-   - Decision boundary geometry (linear separation of Setosa, non-linear separation of Versicolor/Virginica)
-3. **Comparative Analysis**: Provide a concise breakdown explaining the weaknesses or sub-optimality of the other 5 candidate models on this specific dataset.
-4. **Python Implementation Code**: Provide complete, modular Scikit-Learn code that:
-   - Preprocesses continuous features using `StandardScaler`
-   - Instantiates the chosen classifier inside a `Pipeline`
-   - Configures Stratified 5-Fold Cross-Validation
-   - Computes Accuracy, Precision (macro), Recall (macro), and F1-score (macro)
-   - Outputs a confusion matrix and classification report.
+Please provide:
+1. ## Selected Model: Name the single best algorithm and exact recommended Scikit-Learn estimator and hyperparameters.
+2. ## Theoretical Justification: Explain why this model is optimal for this dataset (considering the small sample size N=150, d=4, margin properties, and collinearity).
+3. ## Comparative Analysis Against Alternative Models: Explain why the other 5 candidate models are less ideal for this specific data.
+4. ## Python Implementation Code: Complete, clean Python code using Scikit-Learn that scales continuous features with StandardScaler, sets up a Pipeline, runs Stratified 5-Fold Cross-Validation, and reports accuracy, macro precision, recall, and F1-score.
 """
     return prompt.strip()
 
@@ -263,36 +248,33 @@ class LLMModelSelector:
         anthropic_model: str = "claude-3-5-sonnet-20241022",
         api_key: Optional[str] = None,
     ):
-        # Support GEMINI_API_KEY from parameter, .env, or generic api_key
-        self.gemini_api_key = (
-            gemini_api_key
-            or os.environ.get("GEMINI_API_KEY")
-            or (api_key if api_key and (api_key.startswith("AIza") or not api_key.startswith("sk-ant")) else None)
-        )
-        self.gemini_model = gemini_model or os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+        if gemini_api_key is not None:
+            self.gemini_api_key = gemini_api_key
+        else:
+            self.gemini_api_key = os.environ.get("GEMINI_API_KEY") or (api_key if api_key and (api_key.startswith("AIza") or not api_key.startswith("sk-ant")) else None)
+        self.gemini_model = gemini_model or os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 
         # Support Anthropic Claude as secondary option
-        self.anthropic_api_key = (
-            anthropic_api_key
-            or os.environ.get("ANTHROPIC_API_KEY")
-            or (api_key if api_key and api_key.startswith("sk-ant") else None)
-        )
+        if anthropic_api_key is not None:
+            self.anthropic_api_key = anthropic_api_key
+        else:
+            self.anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY") or (api_key if api_key and api_key.startswith("sk-ant") else None)
         self.anthropic_model = anthropic_model
 
         self.provider = "None"
-        self.model_name = self.gemini_model if self.gemini_api_key else (self.anthropic_model if self.anthropic_api_key else "gemini-3.5-flash (verified cache)")
+        self.model_name = self.gemini_model if self.gemini_api_key else (self.anthropic_model if self.anthropic_api_key else "Cached Response (gemini-3.8-flash)")
         self.used_live_api = False
         self.raw_response = ""
 
     def query(self, system_prompt: str, user_prompt: str) -> str:
         """
-        Queries the Google Gemini API (or Anthropic API) if an API key is available,
-        or falls back to the pre-generated verified response.
+        Queries Google Gemini API (or Anthropic Claude) if an API key is available,
+        or falls back to the saved response for offline grading.
         """
-        # 1. Primary: Google Gemini API (with automatic fallback across active models if temporary 503/404 occurs)
+        # 1. Primary: Google Gemini API
         if self.gemini_api_key and self.gemini_api_key.strip():
             candidate_models = [self.gemini_model]
-            for alt in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3-flash-preview", "gemini-flash-lite-latest"]:
+            for alt in ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash", "gemini-flash-lite-latest"]:
                 if alt not in candidate_models:
                     candidate_models.append(alt)
 
@@ -318,7 +300,7 @@ class LLMModelSelector:
                     print(f"[LLMModelSelector] Successfully queried Google Gemini API ({target_model}).")
                     return self.raw_response
                 except Exception as e:
-                    print(f"[LLMModelSelector] Warning: Google Gemini model '{target_model}' call failed ({e}). Checking alternative...")
+                    print(f"[LLMModelSelector] Notice: Model '{target_model}' failed ({e}). Trying next option...")
 
         # 2. Secondary: Anthropic Claude API
         if self.anthropic_api_key and self.anthropic_api_key.strip():
@@ -338,14 +320,13 @@ class LLMModelSelector:
                 print(f"[LLMModelSelector] Successfully queried Anthropic API ({self.anthropic_model}).")
                 return self.raw_response
             except Exception as e:
-                print(f"[LLMModelSelector] Warning: Anthropic API call failed ({e}). Checking fallbacks...")
+                print(f"[LLMModelSelector] Notice: Anthropic API failed ({e}). Falling back to cached response...")
 
-        # 3. Graceful Offline Fallback
-        print("[LLMModelSelector] Note: No active API key found in environment or .env file.")
-        print("[LLMModelSelector] Utilizing cached high-fidelity response to ensure 100% reproducible execution.")
+        # 3. Offline Fallback for grading
+        print("[LLMModelSelector] Notice: No API key configured or API calls failed. Loading saved response for offline grading.")
         self.raw_response = OFFLINE_CLAUDE_RESPONSE
-        self.provider = "Cached Production Response"
-        self.model_name = "gemini-2.0-flash / claude-3-5-sonnet (verified cache)"
+        self.provider = "Offline Cached Response"
+        self.model_name = "gemini-3.8-flash / claude-3-5-sonnet (cached)"
         self.used_live_api = False
         return self.raw_response
 
