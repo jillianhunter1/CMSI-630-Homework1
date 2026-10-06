@@ -128,10 +128,12 @@ My solution connects dataset analysis, GenAI model recommendation, and empirical
 import os
 import sys
 import warnings
-from dotenv import load_dotenv
-
-# Load environment variables from .env file (if present)
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    # Load environment variables from .env file (if present)
+    load_dotenv()
+except ImportError:
+    pass
 
 import numpy as np
 import pandas as pd

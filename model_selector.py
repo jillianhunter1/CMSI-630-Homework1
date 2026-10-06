@@ -17,10 +17,12 @@ import sys
 import json
 import re
 from typing import Dict, Any, Tuple, Optional
-from dotenv import load_dotenv
-
-# Automatically load environment variables from .env file (if present)
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    # Automatically load environment variables from .env file (if present)
+    load_dotenv()
+except ImportError:
+    pass
 
 import numpy as np
 import pandas as pd
